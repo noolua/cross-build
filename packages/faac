@@ -1,0 +1,53 @@
+###########################################################################
+#  Change values here                                                     #
+#                                                                         #
+MODEL="faac"                                                              #
+VERSION="1.28"                                                            #
+SRCURL="http://downloads.sourceforge.net/faac/${MODEL}-${VERSION}.tar.bz2" #
+#                                                                         #
+###########################################################################
+module_download()
+{
+    cpb_download_and_extract ${SRCURL} ${MODEL}-${VERSION}.tar.bz2
+} 
+
+module_building() 
+{
+    case $TARGET_HOST in
+        iOS)
+            CONFIG_SSL="--with-darwinssl"
+            OPT_CFLAGS=""
+        ;;
+        RPi | android | oxnas)
+            CONFIG_HOST=arm-linux
+            CONFIG_SSL="--with-ssl=${INSTALLPATH}"
+            OPT_CFLAGS=""
+        ;;
+        rt305x |ar71xx|rt288x|brcm63xx)
+            CONFIG_HOST=mipsel-linux
+            CONFIG_SSL="--with-ssl=${INSTALLPATH}"
+            OPT_CFLAGS="-ffast-math -fomit-frame-pointer -funit-at-a-time -fhonour-copts -mips32 -mtune=mips32 -msoft-float -DFIXED_POINT"
+        ;;
+        *)
+            echo "$TARGET_HOST not config!"
+            exit 1
+        ;;
+    esac
+
+    export CC="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}gcc"
+    export CFLAGS="-O4 -pipe ${OPT_CFLAGS}"
+    export CPPFLAGS="-fno-builtin-cos -fno-builtin-sin -fno-builtin-log"
+
+    
+    ./configure --prefix="${INSTALLPATH}" --host=${CONFIG_HOST} \
+                --enable-static \
+                --disable-shared \
+		--without-mp4v2
+    make 
+    make install
+    make clean
+    
+    unset CC
+    unset CFLAGS
+    unset CPPFLAGS
+}

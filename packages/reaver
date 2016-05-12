@@ -1,0 +1,67 @@
+###########################################################################
+#  Change values here                                                     #
+#                                                                         #
+MODEL="reaver"                                                            #
+VERSION="1.4"                                                             #
+SRCURL="http://reaver-wps.googlecode.com/files/${MODEL}-${VERSION}.tar.gz"        #
+#                                                                         #
+###########################################################################
+module_download()
+{
+    cpb_download_and_extract ${SRCURL} ${MODEL}-${VERSION}.tar.gz
+}
+
+module_building()
+{
+    RV_OLD_PATH=`pwd`
+    cd "$RV_OLD_PATH/src"
+
+    case $TARGET_MARCH in
+        iOS)
+        ;;
+        arm)
+            CONFIG_HOST=arm-linux
+        ;;
+        mips|mipsel)
+            CONFIG_HOST=mipsel-linux
+        ;;
+        *)
+            echo "$TARGET_MARCH not config!"
+            exit 1
+        ;;
+    esac
+
+    export CC="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}gcc"
+    export CPP="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}cpp"
+    export CFLAGS="${CC_ARCH_FLAG} ${CC_SYSROOT_FLAG} ${CROSS_SYSROOT} -I${INSTALLPATH}/include -ldl -lpthread"
+    export CPPFLAGS="-I${INSTALLPATH}/include"
+    export LDFLAGS="-L${INSTALLPATH}/lib"
+#   export LIBS="-ldl -lpthread"
+    AR="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ar"
+    RANLIB="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ranlib"
+
+    ./configure --prefix="${INSTALLPATH}" --host=${CONFIG_HOST}
+
+
+    sed -ie "s#^CC=.*#CC=${CC} -I${INSTALLPATH}/include#" "./common/lib.rules"
+    sed -ie "s#^CC=.*#CC=${CC} -I${INSTALLPATH}/include#" "./libwps/Makefile"
+    sed -ie "s#^CC=.*#CC=${CC} -I${INSTALLPATH}/include#" "./wps/Makefile"
+    sed -ie "s#^CC = .*#CC=${CC} -I${INSTALLPATH}/include#" "./lwe/Makefile"
+    sed -ie "s#^AR = .*#AR=${AR}#" "./lwe/Makefile"
+    sed -ie "s#^RANLIB = .*#RANLIB=${RANLIB}#" "./lwe/Makefile"
+#    sed -ie "s#^CFLAGS=.*#CFLAGS=${CC_ARCH_FLAG} ${CC_SYSROOT_FLAG} ${CROSS_SYSROOT} -O2 -D_FILE_OFFSET_BITS=64 -Wall \$(MYCFLAGS)#" "./src/Makefile"
+
+
+    make
+    make install
+    make clean
+
+    unset CC
+    unset CPP
+    unset CFLAGS
+    unset CPPFALGS
+    unset LDFLAGS
+#    unset LIBS
+
+    cd "$RV_OLD_PATH"
+}

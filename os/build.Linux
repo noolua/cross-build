@@ -1,0 +1,26 @@
+#####################################
+
+CC_SYSROOT_FLAG=--sysroot
+CC_ARCH_FLAG=
+
+# check build condition
+if test x$TOOLCHAIN_PATH = x; then
+   echo "please: export TOOLCHAIN_PATH=where-toolchain-path"
+   exit 1
+fi
+
+if test x$TOOLCHAIN_BIN_PREFIX = x; then
+   echo "please: export TOOLCHAIN_BIN_PREFIX=toolchain-bin-prefix"
+   exit 1
+fi
+
+if test x$CROSS_SYSROOT = x; then
+   echo "please: export CROSS_SYSROOT=where-sysroot-path"
+   exit 1
+fi
+
+NCPU=`lscpu|grep "^CPU(s):"|awk '{print $2}'`
+if test x$NJOB = x; then
+    NJOB=$NCPU
+fi    
+echo "CPU for job(s): $NJOB"

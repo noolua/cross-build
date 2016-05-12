@@ -1,0 +1,111 @@
+#!/bin/sh
+#  Created by noolua on 2013-7-26.
+#  Copyright 2013 noolua. All rights reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+###########################################################################
+
+############### HELPER FUNCTIONS
+#cpb_download_and_extract tar_url tar_name
+
+cpb_download_and_extract()
+{
+    URL=$1
+    TAR=$2
+
+    mkdir -p "${BUILD_TARBALLS_PATH}"
+
+    set -e
+    if [ ! -e ${BUILD_TARBALLS_PATH}/${TAR} ]; then
+        echo "Downloading '${TAR}'"
+        if /bin/sh -c "wget -V > /dev/null 2>&1"; then
+            wget --no-check-certificate ${URL} -O "${BUILD_TARBALLS_PATH}/${TAR}"
+        else
+            if /bin/sh -c "curl -V > /dev/null 2>&1"; then
+                curl -L ${URL} -o "${BUILD_TARBALLS_PATH}/${TAR}"
+            else
+                echo "NOT found command 'curl' or 'wget' for download tarball, exit"
+                exit 1
+            fi
+        fi
+    else
+        echo "Using ${TAR}"
+    fi
+
+    mkdir -p "${BUILD_SRC_PATH}"
+    tar xf "${BUILD_TARBALLS_PATH}/${TAR}" -C "${BUILD_SRC_PATH}"
+}
+
+#check require file FILE_PATH
+cpb_load_required_file()
+{
+    FILE_PATH=$1
+    if [ -f $FILE_PATH ]
+    then
+        echo "require '$FILE_PATH' successful. "
+        . $FILE_PATH
+    else
+        echo "require '$FILE_PATH' not exist."
+        return 1;
+    fi
+    return 0;
+}
+
+#usage_print
+cpb_usage_print()
+{
+    echo "usage: $0 iOS|RPi|RTD1186 zlib|lua|luacjson|curl|openssl|pcre|nginx|all"
+}
+
+######################## END HELPER FUNCTIONS
+
+CURRENTPATH=`pwd`
+BUILD_TARBALLS_PATH=${CURRENTPATH}/build/tarballs
+BUILD_SRC_PATH=${CURRENTPATH}/build/src
+BUILD_ROOT_PATH=${CURRENTPATH}/build/$1
+BUILD_HOST=`uname -s`
+TARGET_HOST=$1
+MODULE=$2
+
+
+#####################################
+#target_build_module MODULE
+target_build_module()
+{
+    module=$1
+
+    INSTALLPATH="${BUILD_ROOT_PATH}/${TARGET_HOST}"
+    TARGET_MARCH=`${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}gcc -dumpmachine|awk  -F '-' '{print $1}' `
+    echo "TARGET_MARCH: $TARGET_MARCH"
+    mkdir -p "${INSTALLPATH}"
+
+    echo "building"
+    module_building
+    echo "build complete."
+}
+
+if ! cpb_load_required_file ./os/build.$BUILD_HOST; then
+    cpb_usage_print;
+    exit 1;
+fi
+
+if ! cpb_load_required_file ./packages/$MODULE; then
+    cpb_usage_print;
+    exit 1;
+fi
+
+#begin download and build
+module_download
+cd "${BUILD_SRC_PATH}/${MODEL}-${VERSION}"
+target_build_module $module
+

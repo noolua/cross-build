@@ -1,0 +1,40 @@
+###########################################################################
+MODEL="pcre"                                                              #
+VERSION="8.33"                                                            #
+SRCURL="http://downloads.sourceforge.net/project/pcre/pcre/${VERSION}/${MODEL}-${VERSION}.tar.gz"         #
+#                                                                         #
+###########################################################################
+
+
+module_download()
+{
+    cpb_download_and_extract ${SRCURL} ${MODEL}-${VERSION}.tar.gz
+}
+
+module_building()
+{
+    case $TARGET_MARCH in
+        iOS)
+        ;;
+        arm)
+            CONFIG_HOST=arm-linux
+        ;;
+        mips|mipsel)
+            CONFIG_HOST=mipsel-linux
+        ;;
+        *)
+            echo "$TARGET_MARCH not config!"
+            exit 1
+        ;;
+    esac
+
+    ./configure --prefix="${INSTALLPATH}" --enable-static --disable-cpp --disable-shared --host=${CONFIG_HOST} \
+	CC="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}gcc" \
+	CFLAGS="-O2 ${CC_ARCH_FLAG} ${CC_SYSROOT_FLAG} ${CROSS_SYSROOT} -I${INSTALLPATH}/include" \
+	LDFLAGS="-L${INSTALLPATH}/lib"
+
+
+    make
+    make install
+    make clean
+}

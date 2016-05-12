@@ -1,0 +1,56 @@
+###########################################################################
+#  Change values here                                                     #
+#                                                                         #
+MODEL="shairport"                                                         #
+VERSION="1.1.1"                                                           #
+SRCURL="https://github.com/abrasive/shairport/archive/${VERSION}.tar.gz"  #
+#                                                                         #
+###########################################################################
+
+module_download()
+{
+   cpb_download_and_extract $SRCURL $MODEL-$VERSION.tar.gz
+}
+
+module_building()
+{
+    case $TARGET_MARCH in
+        iOS)
+            LIBS="curl lua z m"
+            MYCFLAGS="-std=gnu99 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -Wall -O2 -fPIC"
+            LDFLAGS="${CC_ARCH_FLAG} -L${INSTALLPATH}/lib -framework Foundation -framework Security"
+        ;;
+        arm|mips|mipsel)
+            LIBS="polarssl ao pthread rt m dl"
+            MYCFLAGS="-std=gnu99 -DCONFIG_HAVE_POLARSSL -Wall -O2 -fPIC"
+            LDFLAGS="${CC_ARCH_FLAG} -L${INSTALLPATH}/lib"
+        ;;
+        *)
+            echo "$TARGET_MARCH not config!"
+            exit 1
+        ;;
+    esac
+
+    echo "\"$VERSION\"" > "${BUILD_SRC_PATH}/${MODEL}-${VERSION}/version.h"
+    echo "#define CONFIG_HAVE_GETOPT_H\n#define CONFIG_AO"> "${BUILD_SRC_PATH}/${MODEL}-${VERSION}/config.h"
+    cp "${CURRENTPATH}/packages/shairport.Makefile" "${BUILD_SRC_PATH}/${MODEL}-${VERSION}/Makefile"
+
+    CC="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}gcc"
+    AR="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ar"
+    RANLIB="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ranlib"
+    STRIP="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}strip"
+
+    sed -ie "s#^CC=.*#CC=${CC}#" "Makefile"
+    sed -ie "s#^AR=.*#AR=${AR}#" "Makefile"
+    sed -ie "s#^RANLIB=.*#RANLIB=${RANLIB}#" "Makefile"
+    sed -ie "s#^STRIP=.*#STRIP=${STRIP}#" "Makefile"
+    sed -ie "s#^LIBS+=.*#LIBS+=${LIBS}#" "Makefile"
+    sed -ie "s#^CFLAGS+=.*#CFLAGS+=${MYCFLAGS} ${CC_ARCH_FLAG} ${CC_SYSROOT_FLAG} ${CROSS_SYSROOT} -I${CROSS_SYSROOT}/usr/include -I${INSTALLPATH}/include #" "Makefile"
+    sed -ie "s#^LDFLAGS+=.*#LDFLAGS+=${LDFLAGS}#" "Makefile"
+    sed -ie "s#^PREFIX=.*#PREFIX=${INSTALLPATH}#" "Makefile"
+
+    make
+    make install
+    make clean
+}
+

@@ -1,0 +1,41 @@
+###########################################################################
+#  Change values here                                                     #
+#                                                                         #
+MODEL="smstools3"                                                         #
+VERSION="3.1.15"                                                          #
+SRCURL="http://localhost/${MODEL}-${VERSION}.tar.gz"                      #
+#                                                                         #
+###########################################################################
+#                                                                         #
+# Don't change anything under this line!                                  #
+#                                                                         #
+###########################################################################
+#module_download
+
+module_download()
+{
+   cpb_download_and_extract $SRCURL $MODEL-$VERSION.tar.gz
+}
+ 
+module_building()
+{
+    export CC="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}gcc"
+    export AR="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ar"
+    export RANLIB="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ranlib"
+    export LDFLAGS="-L${INSTALLPATH}/usr/lib -ldl"
+    export CFLAGS="-O2 -Wall -Werror ${CC_ARCH_FLAG} ${CC_SYSROOT_FLAG} ${CROSS_SYSROOT}"
+    STRIP="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}strip"
+    make
+    $STRIP ./src/smsd
+    cp ./src/smsd "${INSTALLPATH}/bin/"
+#    make install
+    make clean
+
+    unset CC
+    unset AR
+    unset RANLIB
+    unset LDFLAGS
+    unset CFLAGS
+
+}
+ 

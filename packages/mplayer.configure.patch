@@ -1,0 +1,12 @@
+*** configure	2014-07-10 15:38:14.085917406 +0800
+--- configure.fixed	2014-07-10 15:40:21.909915362 +0800
+***************
+*** 74,79 ****
+--- 74,80 ----
+    echo >> "$TMPLOG"
+    echo "$_cc $WARNFLAGS $WARN_CFLAGS $CFLAGS $source $extra_cflags $ld_static $extra_ldflags $libs_mplayer $libs_mencoder -o $TMPEXE $@" >> "$TMPLOG"
+    rm -f "$TMPEXE"
++   _cc=$CC
+    $_cc $WARNFLAGS $WARN_CFLAGS $CFLAGS "$source" $extra_cflags $ld_static $extra_ldflags $libs_mplayer $libs_mencoder -o "$TMPEXE" "$@" >> "$TMPLOG" 2>&1
+    TMPRES="$?"
+    echo >> "$TMPLOG"

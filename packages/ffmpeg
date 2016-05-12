@@ -1,0 +1,77 @@
+###########################################################################
+#  Change values here                                                     #
+#                                                                         #
+MODEL="ffmpeg"                                                            #
+VERSION="0.11.5"                                                          #
+SRCURL="http://www.ffmpeg.org/releases/${MODEL}-${VERSION}.tar.gz"        #
+#                                                                         #
+###########################################################################
+module_download()
+{
+    cpb_download_and_extract ${SRCURL} ${MODEL}-${VERSION}.tar.gz
+}
+
+module_building()
+{
+    case $TARGET_MARCH in
+        iOS)
+            CONFIG_SSL="--with-darwinssl"
+        ;;
+        arm)
+            CONFIG_HOST=arm-linux
+            CONFIG_SSL="--with-ssl=${INSTALLPATH}"
+        ;;
+        mips|mipsel)
+            CONFIG_HOST=mips-linux
+            CONFIG_SSL="--with-ssl=${INSTALLPATH}"
+        ;;
+        *)
+            echo "$TARGET_MARCH not config!"
+            exit 1
+        ;;
+    esac
+
+    CC="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}gcc"
+    CXX="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}g++"
+    AR="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ar"
+    RANLIB="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ranlib"
+    AS="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}as"
+    LD="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ld"
+    NM="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}nm"
+    #export CFLAGS="-O3 -Wall ${CC_ARCH_FLAG} ${CC_SYSROOT_FLAG} ${CROSS_SYSROOT}"
+    #export CPPFLAGS="-I${INSTALLPATH}/include"
+    #export LDFLAGS="-L${INSTALLPATH}/lib"
+    #export LIBS="-ldl"
+
+    ./configure --prefix="${INSTALLPATH}" \
+                --disable-doc \
+                --disable-ffmpeg \
+                --disable-ffplay \
+                --disable-ffprobe \
+                --disable-ffserver \
+                --enable-cross-compile \
+                --target-os=linux \
+                --arch=mips \
+                --cc=${CC} \
+                --as=${AS} \
+                --ar=${AR} \
+                --nm=${NM} \
+                --disable-everything \
+                --enable-decoder=flac \
+                --enable-decoder=mp3 \
+                --enable-demuxer=flac \
+                --enable-demuxer=mp3 \
+		--enable-protocol=file
+    make
+    make install
+    make clean
+
+    #unset CC
+    #unset CPP
+    #unset AR
+    #unset RANLIB
+    #unset CFLAGS
+    #unset CPPFALGS
+    #unset LDFLAGS
+    #unset LIBS
+}

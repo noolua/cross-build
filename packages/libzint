@@ -1,0 +1,61 @@
+###########################################################################
+#  Change values here                                                     #
+#                                                                         #
+MODEL="zint"                                                            #
+VERSION="2.4.2"                                                           #
+SRCURL="http://downloads.sourceforge.net/project/zint/zint/${VERSION}/${MODEL}-${VERSION}.tar.gz"  #
+#                                                                         #
+###########################################################################
+module_download()
+{
+    cpb_download_and_extract ${SRCURL} ${MODEL}-${VERSION}.tar.gz
+} 
+
+module_building() 
+{
+    case $TARGET_HOST in
+        iOS)
+        ;;
+        RPi | android | oxnas)
+            CONFIG_HOST=arm-linux
+        ;;
+        rt305x |ar71xx|rt288x|brcm63xx)
+            CONFIG_HOST=mips-linux
+        ;;
+        *)
+            echo "$TARGET_HOST not config!"
+            exit 1
+        ;;
+    esac
+
+    cp "${CURRENTPATH}/packages/libzint.Makefile" "${BUILD_SRC_PATH}/${MODEL}-${VERSION}/Makefile"
+    cp "${CURRENTPATH}/packages/libzint.zint.c" "${BUILD_SRC_PATH}/${MODEL}-${VERSION}/zint.c"
+
+    CC="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}gcc"
+    AR="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ar"
+    RANLIB="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ranlib"
+    STRIP="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}strip"
+    LIBS=m
+
+    sed -ie "s#^CC=.*#CC=${CC}#" "Makefile"
+    sed -ie "s#^AR=.*#AR=${AR}#" "Makefile"
+    sed -ie "s#^RANLIB=.*#RANLIB=${RANLIB}#" "Makefile"
+    sed -ie "s#^STRIP=.*#STRIP=${STRIP}#" "Makefile"
+    sed -ie "s#^LIBS+=.*#LIBS+=${LIBS}#" "Makefile"
+    sed -ie "s#^CFLAGS+=.*#CFLAGS+=${MYCFLAGS} ${CC_ARCH_FLAG} ${CC_SYSROOT_FLAG} ${CROSS_SYSROOT} -I${CROSS_SYSROOT}/usr/include -I${INSTALLPATH}/include -I./backend #" "Makefile"
+    sed -ie "s#^LDFLAGS=.*#LDFLAGS=${LDFLAGS}#" "Makefile"
+    sed -ie "s#^PREFIX=.*#PREFIX=${INSTALLPATH}#" "Makefile"
+   
+   make
+   make install
+   make clean
+    
+    #unset CC
+    #unset CPP
+    #unset AR
+    #unset RANLIB
+    #unset CFLAGS
+    #unset CPPFALGS
+    #unset LDFLAGS
+    #unset LIBS
+}

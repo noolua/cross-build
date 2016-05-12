@@ -1,0 +1,35 @@
+###########################################################################
+#  Change values here                                                     #
+#                                                                         #
+MODEL="openssl"                                                           #
+VERSION="1.0.1h"                                                          #
+SRCURL="http://www.openssl.org/source/${MODEL}-${VERSION}.tar.gz"         #
+###########################################################################
+module_download()
+{
+    cpb_download_and_extract ${SRCURL} ${MODEL}-${VERSION}.tar.gz
+}
+
+module_building()
+{
+    case $TARGET_MARCH in
+        iOS)
+            CONFIG_PLATFORM=BSD-generic32
+        ;;
+        arm|mips|mipsel)
+            CONFIG_PLATFORM=linux-generic32
+        ;;
+        *)
+            echo "$TARGET_MARCH not config!"
+            exit 1
+        ;;
+    esac
+    export CC="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}gcc ${CC_SYSROOT_FLAG} ${CROSS_SYSROOT} -L${CROSS_SYSROOT}/lib -O3 -Wall ${CC_ARCH_FLAG}"
+    ./Configure ${CONFIG_PLATFORM} --openssldir="${INSTALLPATH}"
+
+    make
+    make install
+    make clean
+    unset CC
+}
+

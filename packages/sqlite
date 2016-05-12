@@ -1,0 +1,52 @@
+###########################################################################
+#  Change values here                                                     #
+#                                                                         #
+MODEL="sqlite-autoconf"                                                   #
+VERSION="3071700"                                                         #
+SRCURL="http://www.sqlite.org/2013/${MODEL}-${VERSION}.tar.gz"            #
+#                                                                         #
+###########################################################################
+module_download()
+{
+    cpb_download_and_extract ${SRCURL} ${MODEL}-${VERSION}.tar.gz
+}
+
+module_building()
+{
+    case $TARGET_MARCH in
+        iOS)
+        ;;
+        arm)
+            CONFIG_HOST=arm-linux
+        ;;
+        mips|mipsel)
+            patch -p0 < ${CURRENTPATH}/modules/sqlite.no_posix_fallocate_patch
+            CONFIG_HOST=mipsel-linux
+        ;;
+        *)
+            echo "$TARGET_MARCH not config!"
+            exit 1
+        ;;
+    esac
+
+    export CC="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}gcc"
+    export CPP="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}cpp"
+    export CFLAGS="${CC_ARCH_FLAG} ${CC_SYSROOT_FLAG} ${CROSS_SYSROOT}"
+    #export CPPFLAGS="-I${INSTALLPATH}/include"
+    export LDFLAGS="-L${INSTALLPATH}/lib"
+    export LIBS="-ldl"
+
+
+    ./configure --prefix="${INSTALLPATH}" --host=${CONFIG_HOST} --disable-shared
+
+    make
+    make install
+    make clean
+
+    unset CC
+    unset CPP
+    unset CFLAGS
+    #unset CPPFALGS
+    unset LDFLAGS
+    unset LIBS
+}

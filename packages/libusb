@@ -1,0 +1,61 @@
+###########################################################################
+#  Change values here                                                     #
+#                                                                         #
+MODEL="libusb"                                                            #
+VERSION="1.0.9"                                                           #
+SRCURL="http://sourceforge.net/projects/libusb/files/libusb-1.0/${MODEL}-${VERSION}/${MODEL}-${VERSION}.tar.bz2"  #
+#                                                                         #
+###########################################################################
+module_download()
+{
+    cpb_download_and_extract ${SRCURL} ${MODEL}-${VERSION}.tar.gz
+} 
+
+module_building() 
+{
+    case $TARGET_HOST in
+        iOS)
+            FPM_ARCH=arm
+        ;;
+        RPi | android|oxnas)
+            CONFIG_HOST=arm-linux
+	    FPM_ARCH=arm
+        ;;
+        rt305x |ar71xx|rt288x|brcm63xx)
+            CONFIG_HOST=mips-linux
+            FPM_ARCH=mips
+        ;;
+        *)
+            echo "$TARGET_HOST not config!"
+            exit 1
+        ;;
+    esac
+
+    export CC="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}gcc"
+    #export CPP="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}cpp"
+    #export AR="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ar"
+    #export RANLIB="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ranlib"
+    export CFLAGS="-Wall -g -O2 -fthread-jumps -fcse-follow-jumps -fcse-skip-blocks -fexpensive-optimizations -fregmove -fschedule-insns2 -fstrength-reduce -finline-functions -Wall ${CC_ARCH_FLAG} ${CC_SYSROOT_FLAG} ${CROSS_SYSROOT}"
+    #export CPPFLAGS="-I${INSTALLPATH}/include"
+    #export LDFLAGS="-L${INSTALLPATH}/lib"
+    #export LIBS="-ldl"
+
+    
+    ./configure --prefix="${INSTALLPATH}" --host=${CONFIG_HOST} \
+                --disable-shared \
+		--enable-fpm=${FPM_ARCH} \
+		--disable-debuging \
+                --enable-static
+    make 
+    make install
+    make clean
+    
+    unset CC
+    #unset CPP
+    #unset AR
+    #unset RANLIB
+    #unset CFLAGS
+    #unset CPPFALGS
+    #unset LDFLAGS
+    #unset LIBS
+}

@@ -1,0 +1,54 @@
+###########################################################################
+#  Change values here                                                     #
+#                                                                         #
+MODEL="faad2"                                                             #
+VERSION="2.7"                                                             #
+SRCURL="http://downloads.sourceforge.net/faac/${MODEL}-${VERSION}.tar.gz" #
+#                                                                         #
+###########################################################################
+module_download()
+{
+    cpb_download_and_extract ${SRCURL} ${MODEL}-${VERSION}.tar.gz
+}
+
+module_building()
+{
+    case $TARGET_MARCH in
+        iOS)
+            CONFIG_SSL="--with-darwinssl"
+            OPT_CFLAGS=""
+        ;;
+        arm)
+            CONFIG_HOST=arm-linux
+            CONFIG_SSL="--with-ssl=${INSTALLPATH}"
+            OPT_CFLAGS=""
+        ;;
+        mips|mipsel)
+            CONFIG_HOST=mipsel-linux
+            CONFIG_SSL="--with-ssl=${INSTALLPATH}"
+            OPT_CFLAGS="-ffast-math -fomit-frame-pointer -funit-at-a-time -fhonour-copts -mips32 -mtune=mips32 -msoft-float -DFIXED_POINT"
+        ;;
+        *)
+            echo "$TARGET_MARCH not config!"
+            exit 1
+        ;;
+    esac
+
+    export CC="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}gcc"
+    export CFLAGS="-O4 -pipe ${OPT_CFLAGS}"
+    export CPPFLAGS="-fno-builtin-cos -fno-builtin-sin -fno-builtin-log"
+
+
+    ./configure --prefix="${INSTALLPATH}" --host=${CONFIG_HOST} \
+                --enable-static \
+                --disable-shared \
+                --without-mp4v2 \
+                --without-xmms
+    make
+    make install
+    make clean
+
+    unset CC
+    unset CFLAGS
+    unset CPPFLAGS
+}
