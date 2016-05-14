@@ -17,6 +17,10 @@ module_building()
         iOS)
             OPT_CFLAGS=""
         ;;
+        i386|i486|i686)
+            CONFIG_HOST=i386-linux
+            OPT_CFLAGS=""
+        ;;
         arm)
             CONFIG_HOST=arm-linux
             OPT_CFLAGS=""

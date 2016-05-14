@@ -18,7 +18,7 @@ module_building()
             CONFIG_SSL="--with-darwinssl"
             OPT_CFLAGS=""
         ;;
-        arm)
+        arm|i386|i486|i686)
             CONFIG_HOST=arm-linux
             CONFIG_SSL="--with-ssl=${INSTALLPATH}"
             OPT_CFLAGS=""
