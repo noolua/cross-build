@@ -19,7 +19,7 @@ module_building()
             OPT_CFLAGS=""
         ;;
         arm|i386|i486|i686)
-            CONFIG_HOST=arm-linux
+            CONFIG_HOST=${TARGET_MARCH}-linux
             CONFIG_SSL="--with-ssl=${INSTALLPATH}"
             OPT_CFLAGS=""
         ;;

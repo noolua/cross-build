@@ -12,7 +12,7 @@ building_for_openwrt(){
   local OPENWRT_CROSS_SYSROOT=$(echo $OPENWRT_FIND_GCC|awk -F '/bin/' '{print $1}')
   local OPENWRT_TOOLCHAIN_PATH="${OPENWRT_CROSS_SYSROOT}/bin"
   local OPENWRT_TOOLCHAIN_BIN_PREFIX=$(echo $OPENWRT_FIND_GCC|awk -F '/' '{print $NF}'|awk -F 'gcc' '{print $1}')
-  if test x$OPENWRT_PLATFORM=x; then
+  if test x$OPENWRT_PLATFORM = x; then
     OPENWRT_PLATFORM=`echo $TOOLCHAIN_PATH|awk -F '/' '{print $(NF-1);}'`
   fi
 
@@ -31,7 +31,7 @@ building_for_android(){
   local NDK_PLATFORM=`echo $TOOLCHAIN_PATH|awk -F '/' '{print $(NF);}'`
   local NDK_TOOLCHAIN_BIN_PREFIX=`ls ${NDK_TOOLCHAIN_PATH}/*gcc|awk -F '/' '{print $NF;}'|awk -F 'gcc' '{print $1}'`
   local NDK_CROSS_SYSROOT=${TOOLCHAIN_PATH}/sysroot
-  if test x$NDK_PLATFORM=x; then
+  if test x$NDK_PLATFORM = x; then
     NDK_PLATFORM=`echo $TOOLCHAIN_PATH|awk -F '/' '{print $(NF-1);}'`
   fi
 

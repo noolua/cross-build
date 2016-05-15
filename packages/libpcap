@@ -17,13 +17,9 @@ module_building()
         iOS)
             WITH_PCAP=bpf
         ;;
-        arm)
+        i386|i486|i686|arm|mips|mipsel)
             WITH_PCAP=linux
-            CONFIG_HOST=arm-linux
-        ;;
-        mips|mipsel)
-            WITH_PCAP=linux
-            CONFIG_HOST=mipsel-linux
+            CONFIG_HOST=${TARGET_MARCH}-linux
         ;;
         *)
             echo "$TARGET_MARCH not config!"
