@@ -100,8 +100,10 @@ if ! cpb_load_required_file ./os/build.$BUILD_HOST; then
 fi
 
 if ! cpb_load_required_file ./packages/$MODULE; then
-    cpb_usage_print;
-    exit 1;
+    if ! cpb_load_required_file ./packages2/$MODULE; then
+        cpb_usage_print;
+        exit 1;
+    fi
 fi
 
 #begin download and build
