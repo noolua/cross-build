@@ -16,11 +16,8 @@ module_building()
     case $TARGET_MARCH in
         iOS)
         ;;
-        arm)
-            CONFIG_HOST=arm-linux
-        ;;
-        mips|mipsel)
-            CONFIG_HOST=mipsel-linux
+        arm|i386|i486|i686|mips|mipsel)
+            CONFIG_HOST=${TARGET_MARCH}-linux
         ;;
         *)
             echo "$TARGET_MARCH not config!"

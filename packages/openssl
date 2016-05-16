@@ -16,7 +16,7 @@ module_building()
         iOS)
             CONFIG_PLATFORM=BSD-generic32
         ;;
-        arm|mips|mipsel)
+        i386|i486|i686|arm|mips|mipsel)
             CONFIG_PLATFORM=linux-generic32
         ;;
         *)

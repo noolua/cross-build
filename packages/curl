@@ -17,8 +17,8 @@ module_building()
         iOS)
             CONFIG_SSL="--with-darwinssl"
         ;;
-        arm)
-            CONFIG_HOST=arm-linux
+        i386|i486|i686|arm)
+            CONFIG_HOST=${TARGET_MARCH}-linux
             CONFIG_SSL="--with-polarssl=${INSTALLPATH}"
         ;;
         mips|mipsel)
