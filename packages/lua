@@ -14,11 +14,12 @@ module_download()
 
 module_building()
 {
-    case $TARGET_MARCH in
-        Android)
-        patch -p3 <$CURRENTPATH/packages/lua.Android.patch
-        ;;
-    esac
+    if [ -d "$CROSS_SYSROOT/usr/include/android" ]; then
+       echo "found Android"
+       patch -p3 <$CURRENTPATH/packages/lua.Android.patch
+    else
+       echo "not Android"
+    fi
 
     CC="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}gcc"
     AR="${TOOLCHAIN_PATH}/${TOOLCHAIN_BIN_PREFIX}ar rcu"

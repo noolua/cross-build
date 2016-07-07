@@ -13,6 +13,10 @@ module_download()
 
 module_building()
 {
+    if [ -d "$CROSS_SYSROOT/usr/include/android" ]; then
+      . ${CURRENTPATH}/packages/libuv.android.build
+      exit 0
+    fi
     case $TARGET_MARCH in
         iOS)
         ;;
